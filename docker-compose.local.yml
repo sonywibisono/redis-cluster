@@ -147,21 +147,23 @@ services:
       - redis-7004
       - redis-7005
       - redis-7006
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      until redis-cli -a "${REDIS_PASSWORD:-MySecretPassword123!}" -h 172.28.0.11 -p 7001 ping;
-      do sleep 2; done;
-      if ! redis-cli -a "${REDIS_PASSWORD:-MySecretPassword123!}" -h 172.28.0.11 -p 7001 cluster info
-      | grep -q 'cluster_state:ok'; then
-        redis-cli -a "${REDIS_PASSWORD:-MySecretPassword123!}" --cluster create
-        172.28.0.11:7001
-        172.28.0.12:7002
-        172.28.0.13:7003
-        172.28.0.14:7004
-        172.28.0.15:7005
-        172.28.0.16:7006
-        --cluster-replicas 1 --cluster-yes;
-      fi
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until redis-cli -a "${REDIS_PASSWORD:-MySecretPassword123!}" -h 172.28.0.11 -p 7001 ping; do
+          sleep 2
+        done
+        if ! redis-cli -a "${REDIS_PASSWORD:-MySecretPassword123!}" -h 172.28.0.11 -p 7001 cluster info | grep -q 'cluster_state:ok'; then
+          redis-cli -a "${REDIS_PASSWORD:-MySecretPassword123!}" --cluster create \
+            172.28.0.11:7001 \
+            172.28.0.12:7002 \
+            172.28.0.13:7003 \
+            172.28.0.14:7004 \
+            172.28.0.15:7005 \
+            172.28.0.16:7006 \
+            --cluster-replicas 1 --cluster-yes
+        fi
     networks:
       - redis-cluster-net
     restart: "no"

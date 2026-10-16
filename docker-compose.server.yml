@@ -118,19 +118,21 @@ services:
       - redis-7004
       - redis-7005
       - redis-7006
-    entrypoint: ["/bin/sh", "-c"]
-    command: >
-      until redis-cli -a "${REDIS_PASSWORD}" -h 127.0.0.1 -p 7001 ping;
-      do sleep 2; done;
-      if ! redis-cli -a "${REDIS_PASSWORD}" -h 127.0.0.1 -p 7001 cluster info
-      | grep -q 'cluster_state:ok'; then
-        redis-cli -a "${REDIS_PASSWORD}" --cluster create
-        ${PUBLIC_IP}:7001
-        ${PUBLIC_IP}:7002
-        ${PUBLIC_IP}:7003
-        ${PUBLIC_IP}:7004
-        ${PUBLIC_IP}:7005
-        ${PUBLIC_IP}:7006
-        --cluster-replicas 1 --cluster-yes;
-      fi
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        until redis-cli -a "${REDIS_PASSWORD}" -h 127.0.0.1 -p 7001 ping; do
+          sleep 2
+        done
+        if ! redis-cli -a "${REDIS_PASSWORD}" -h 127.0.0.1 -p 7001 cluster info | grep -q 'cluster_state:ok'; then
+          redis-cli -a "${REDIS_PASSWORD}" --cluster create \
+            ${PUBLIC_IP}:7001 \
+            ${PUBLIC_IP}:7002 \
+            ${PUBLIC_IP}:7003 \
+            ${PUBLIC_IP}:7004 \
+            ${PUBLIC_IP}:7005 \
+            ${PUBLIC_IP}:7006 \
+            --cluster-replicas 1 --cluster-yes
+        fi
     restart: "no"
