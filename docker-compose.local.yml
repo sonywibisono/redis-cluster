@@ -1,0 +1,174 @@
+services:
+  redis-7001:
+    image: redis:8.2.4-alpine3.22
+    container_name: redis-7001
+    command: >
+      redis-server
+      /usr/local/etc/redis/redis.conf
+      --port 7001
+      --cluster-announce-ip 172.28.0.11
+      --cluster-announce-port 7001
+      --cluster-announce-bus-port 17001
+      --requirepass "${REDIS_PASSWORD:-MySecretPassword123!}"
+      --masterauth "${REDIS_PASSWORD:-MySecretPassword123!}"
+    volumes:
+      - ./data/7001:/data
+      - ./redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "7001:7001"
+      - "17001:17001"
+    networks:
+      redis-cluster-net:
+        ipv4_address: 172.28.0.11
+    restart: unless-stopped
+
+  redis-7002:
+    image: redis:8.2.4-alpine3.22
+    container_name: redis-7002
+    command: >
+      redis-server
+      /usr/local/etc/redis/redis.conf
+      --port 7002
+      --cluster-announce-ip 172.28.0.12
+      --cluster-announce-port 7002
+      --cluster-announce-bus-port 17002
+      --requirepass "${REDIS_PASSWORD:-MySecretPassword123!}"
+      --masterauth "${REDIS_PASSWORD:-MySecretPassword123!}"
+    volumes:
+      - ./data/7002:/data
+      - ./redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "7002:7002"
+      - "17002:17002"
+    networks:
+      redis-cluster-net:
+        ipv4_address: 172.28.0.12
+    restart: unless-stopped
+
+  redis-7003:
+    image: redis:8.2.4-alpine3.22
+    container_name: redis-7003
+    command: >
+      redis-server
+      /usr/local/etc/redis/redis.conf
+      --port 7003
+      --cluster-announce-ip 172.28.0.13
+      --cluster-announce-port 7003
+      --cluster-announce-bus-port 17003
+      --requirepass "${REDIS_PASSWORD:-MySecretPassword123!}"
+      --masterauth "${REDIS_PASSWORD:-MySecretPassword123!}"
+    volumes:
+      - ./data/7003:/data
+      - ./redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "7003:7003"
+      - "17003:17003"
+    networks:
+      redis-cluster-net:
+        ipv4_address: 172.28.0.13
+    restart: unless-stopped
+
+  redis-7004:
+    image: redis:8.2.4-alpine3.22
+    container_name: redis-7004
+    command: >
+      redis-server
+      /usr/local/etc/redis/redis.conf
+      --port 7004
+      --cluster-announce-ip 172.28.0.14
+      --cluster-announce-port 7004
+      --cluster-announce-bus-port 17004
+      --requirepass "${REDIS_PASSWORD:-MySecretPassword123!}"
+      --masterauth "${REDIS_PASSWORD:-MySecretPassword123!}"
+    volumes:
+      - ./data/7004:/data
+      - ./redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "7004:7004"
+      - "17004:17004"
+    networks:
+      redis-cluster-net:
+        ipv4_address: 172.28.0.14
+    restart: unless-stopped
+
+  redis-7005:
+    image: redis:8.2.4-alpine3.22
+    container_name: redis-7005
+    command: >
+      redis-server
+      /usr/local/etc/redis/redis.conf
+      --port 7005
+      --cluster-announce-ip 172.28.0.15
+      --cluster-announce-port 7005
+      --cluster-announce-bus-port 17005
+      --requirepass "${REDIS_PASSWORD:-MySecretPassword123!}"
+      --masterauth "${REDIS_PASSWORD:-MySecretPassword123!}"
+    volumes:
+      - ./data/7005:/data
+      - ./redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "7005:7005"
+      - "17005:17005"
+    networks:
+      redis-cluster-net:
+        ipv4_address: 172.28.0.15
+    restart: unless-stopped
+
+  redis-7006:
+    image: redis:8.2.4-alpine3.22
+    container_name: redis-7006
+    command: >
+      redis-server
+      /usr/local/etc/redis/redis.conf
+      --port 7006
+      --cluster-announce-ip 172.28.0.16
+      --cluster-announce-port 7006
+      --cluster-announce-bus-port 17006
+      --requirepass "${REDIS_PASSWORD:-MySecretPassword123!}"
+      --masterauth "${REDIS_PASSWORD:-MySecretPassword123!}"
+    volumes:
+      - ./data/7006:/data
+      - ./redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
+    ports:
+      - "7006:7006"
+      - "17006:17006"
+    networks:
+      redis-cluster-net:
+        ipv4_address: 172.28.0.16
+    restart: unless-stopped
+
+  redis-cluster-init:
+    image: redis:8.2.4-alpine3.22
+    container_name: redis-cluster-init
+    depends_on:
+      - redis-7001
+      - redis-7002
+      - redis-7003
+      - redis-7004
+      - redis-7005
+      - redis-7006
+    entrypoint: ["/bin/sh", "-c"]
+    command: >
+      until redis-cli -a "${REDIS_PASSWORD:-MySecretPassword123!}" -h 172.28.0.11 -p 7001 ping;
+      do sleep 2; done;
+      if ! redis-cli -a "${REDIS_PASSWORD:-MySecretPassword123!}" -h 172.28.0.11 -p 7001 cluster info
+      | grep -q 'cluster_state:ok'; then
+        redis-cli -a "${REDIS_PASSWORD:-MySecretPassword123!}" --cluster create
+        172.28.0.11:7001
+        172.28.0.12:7002
+        172.28.0.13:7003
+        172.28.0.14:7004
+        172.28.0.15:7005
+        172.28.0.16:7006
+        --cluster-replicas 1 --cluster-yes;
+      fi
+    networks:
+      - redis-cluster-net
+    restart: "no"
+
+networks:
+  redis-cluster-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16

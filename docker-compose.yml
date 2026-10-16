@@ -1,4 +1,3 @@
-
 services:
   redis-7001:
     image: redis:8.2.4-alpine3.22
@@ -10,6 +9,8 @@ services:
       --cluster-announce-ip 172.28.0.11
       --cluster-announce-port 7001
       --cluster-announce-bus-port 17001
+      --requirepass "${REDIS_PASSWORD:-MySecretPassword123!}"
+      --masterauth "${REDIS_PASSWORD:-MySecretPassword123!}"
     volumes:
       - ./data/7001:/data
       - ./redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
@@ -31,6 +32,8 @@ services:
       --cluster-announce-ip 172.28.0.12
       --cluster-announce-port 7002
       --cluster-announce-bus-port 17002
+      --requirepass "${REDIS_PASSWORD:-MySecretPassword123!}"
+      --masterauth "${REDIS_PASSWORD:-MySecretPassword123!}"
     volumes:
       - ./data/7002:/data
       - ./redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
@@ -52,6 +55,8 @@ services:
       --cluster-announce-ip 172.28.0.13
       --cluster-announce-port 7003
       --cluster-announce-bus-port 17003
+      --requirepass "${REDIS_PASSWORD:-MySecretPassword123!}"
+      --masterauth "${REDIS_PASSWORD:-MySecretPassword123!}"
     volumes:
       - ./data/7003:/data
       - ./redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
@@ -73,6 +78,8 @@ services:
       --cluster-announce-ip 172.28.0.14
       --cluster-announce-port 7004
       --cluster-announce-bus-port 17004
+      --requirepass "${REDIS_PASSWORD:-MySecretPassword123!}"
+      --masterauth "${REDIS_PASSWORD:-MySecretPassword123!}"
     volumes:
       - ./data/7004:/data
       - ./redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
@@ -94,6 +101,8 @@ services:
       --cluster-announce-ip 172.28.0.15
       --cluster-announce-port 7005
       --cluster-announce-bus-port 17005
+      --requirepass "${REDIS_PASSWORD:-MySecretPassword123!}"
+      --masterauth "${REDIS_PASSWORD:-MySecretPassword123!}"
     volumes:
       - ./data/7005:/data
       - ./redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
@@ -115,6 +124,8 @@ services:
       --cluster-announce-ip 172.28.0.16
       --cluster-announce-port 7006
       --cluster-announce-bus-port 17006
+      --requirepass "${REDIS_PASSWORD:-MySecretPassword123!}"
+      --masterauth "${REDIS_PASSWORD:-MySecretPassword123!}"
     volumes:
       - ./data/7006:/data
       - ./redis-cluster.conf:/usr/local/etc/redis/redis.conf:ro
@@ -138,11 +149,11 @@ services:
       - redis-7006
     entrypoint: ["/bin/sh", "-c"]
     command: >
-      until redis-cli -h 172.28.0.11 -p 7001 ping;
+      until redis-cli -a "${REDIS_PASSWORD:-MySecretPassword123!}" -h 172.28.0.11 -p 7001 ping;
       do sleep 2; done;
-      if ! redis-cli -h 172.28.0.11 -p 7001 cluster info
+      if ! redis-cli -a "${REDIS_PASSWORD:-MySecretPassword123!}" -h 172.28.0.11 -p 7001 cluster info
       | grep -q 'cluster_state:ok'; then
-        redis-cli --cluster create
+        redis-cli -a "${REDIS_PASSWORD:-MySecretPassword123!}" --cluster create
         172.28.0.11:7001
         172.28.0.12:7002
         172.28.0.13:7003
@@ -161,4 +172,3 @@ networks:
     ipam:
       config:
         - subnet: 172.28.0.0/16
-
