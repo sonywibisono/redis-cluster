@@ -167,6 +167,18 @@ services:
     networks:
       - redis-cluster-net
     restart: "no"
+  redis-commander:
+    container_name: redis-commander
+    hostname: redis-commander
+    image: ghcr.io/joeferner/redis-commander:latest
+    restart: always
+    environment:
+     - REDIS_HOSTS=local:172.28.0.11:7001:0:${REDIS_PASSWORD},local:172.28.0.12:7002:0:${REDIS_PASSWORD},local:172.28.0.13:7003:0:${REDIS_PASSWORD},local:172.28.0.14:7004:0:${REDIS_PASSWORD},local:172.28.0.15:7005:0:${REDIS_PASSWORD},local:172.28.0.16:7006:0:${REDIS_PASSWORD}
+    
+    networks:
+      - redis-cluster-net
+    ports:
+      - "8081:8081"
 
 networks:
   redis-cluster-net:
